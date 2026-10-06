@@ -1,0 +1,22 @@
+[
+  {
+    "entity_id": 5,
+    "behaviour": "loitering",
+    "start_s": 42.0,
+    "end_s": 75.2,
+    "zone": "ATM_Area",
+    "confidence": 0.88,
+    "why": "Stayed in ATM_Area for 33.2s (threshold 30s)",
+    "evidence_frame": 1050
+  },
+  {
+    "entity_id": 2,
+    "behaviour": "restricted_entry",
+    "start_s": 20.0,
+    "end_s": 22.0,
+    "zone": "Staff_Door",
+    "confidence": 0.95,
+    "why": "Entered restricted zone",
+    "evidence_frame": 500
+  }
+]

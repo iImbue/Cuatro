@@ -1,0 +1,45 @@
+# ─── Model & Tracker ───────────────────────────────────────────────────────────
+model: yolov8m.pt          # swap to yolov8n.pt if needed for speed
+tracker: bytetrack.yaml
+device: 0                  # 0 = first GPU (RTX 4050); "cpu" to force CPU
+conf_person: 0.40
+conf_bag: 0.30             # lower threshold so small bags aren't missed
+video_fps: 25              # fallback FPS when it can't be read from file
+
+# ─── COCO class IDs we care about ──────────────────────────────────────────────
+target_classes:
+  person: 0
+  backpack: 24
+  handbag: 26
+  suitcase: 28
+
+# ─── Zones ─────────────────────────────────────────────────────────────────────
+# Polygons are pixel coords for a 1280×720 reference frame.
+# P2 will update these once real footage is available.
+zones:
+  ATM_Area:
+    type: loiter            # loiter | restricted | storefront
+    polygon: [[200,300],[450,300],[450,550],[200,550]]
+    loiter_seconds: 30      # per-zone override of the global threshold
+
+  Staff_Door:
+    type: restricted
+    polygon: [[900,100],[1050,100],[1050,280],[900,280]]
+
+  Store_A_Entrance:
+    type: storefront
+    polygon: [[500,400],[750,400],[750,600],[500,600]]
+    storefront_dwell_seconds: 10
+
+# ─── Behaviour Thresholds ──────────────────────────────────────────────────────
+loiter_seconds: 30
+storefront_dwell_seconds: 10
+abandoned_bag_seconds: 20
+owner_distance_bodyheights: 2.0   # bag is "alone" when owner > N × person bbox-height away
+run_speed_bodyheights_per_s: 1.5  # stretch goal
+
+# ─── Output ────────────────────────────────────────────────────────────────────
+output_dir: outputs
+thumbnail_dir: outputs/thumbnails
+annotated_suffix: _annotated      # clip1_annotated.mp4
+events_csv: outputs/events.csv

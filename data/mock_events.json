@@ -1,0 +1,44 @@
+[
+  {
+    "entity_id": 1,
+    "behaviour": "loitering",
+    "start_s": 0.0,
+    "end_s": 42.0,
+    "zone": "ATM_Area",
+    "confidence": 0.88,
+    "why": "Person #1 stayed in ATM_Area for 42.0s (threshold 30s)",
+    "evidence_frame": 1050
+  },
+  {
+    "entity_id": 3,
+    "behaviour": "restricted_entry",
+    "start_s": 5.0,
+    "end_s": 7.0,
+    "zone": "Staff_Door",
+    "confidence": 0.94,
+    "why": "Person #3 foot-point entered Staff_Door polygon at t=5.0s",
+    "evidence_frame": 125
+  },
+  {
+    "entity_id": 5,
+    "behaviour": "abandoned_bag",
+    "start_s": 16.0,
+    "end_s": 24.0,
+    "zone": null,
+    "confidence": 0.82,
+    "why": "Bag #5 (backpack) last seen with Person #4 at t=15.0s; stationary and unattended for 8.0s (threshold 20s not yet reached — partial event for demo)",
+    "evidence_frame": 500,
+    "owner_id": 4,
+    "owner_last_seen_s": 15.0
+  },
+  {
+    "entity_id": 4,
+    "behaviour": "storefront_dwell",
+    "start_s": 14.0,
+    "end_s": 16.0,
+    "zone": "Store_A_Entrance",
+    "confidence": 0.79,
+    "why": "Person #4 dwelled at Store_A_Entrance for 2.0s (analytics event; threshold 10s not reached — short demo clip)",
+    "evidence_frame": 350
+  }
+]
