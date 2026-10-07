@@ -4,7 +4,7 @@ tracker: bytetrack.yaml
 device: 0                  # 0 = first GPU (RTX 4050); "cpu" to force CPU
 conf_person: 0.40
 conf_bag: 0.30             # lower threshold so small bags aren't missed
-video_fps: 24              # updated to match clip1.mp4 (24 fps)
+video_fps: 30              # updated to match merged clip (30 fps)
 
 # ─── COCO class IDs we care about ──────────────────────────────────────────────
 target_classes:
@@ -17,19 +17,33 @@ target_classes:
 # Polygons are pixel coords for a 1280×720 reference frame.
 # Mapped to the actual amphitheater/patio footage.
 zones:
-  Staircase_Area:
-    type: restricted        # No loitering on stairs — fires immediately on entry
-    polygon: [[150,240],[430,240],[430,435],[150,435]]
+  Loiter_Zone:
+    type: loiter            # Open paved courtyard between U10 columns and hedged path
+                            # (frame 3805 — where people naturally stop/congregate)
+    polygon: [[350,350],[870,350],[870,650],[350,650]]
+    loiter_seconds: 25
+    active_frames: [600, 4757]   # outdoor scene only
 
-  Patio_Seating:
-    type: loiter            # Umbrella/table area — flag if someone lingers too long
-    polygon: [[80,435],[1280,435],[1280,720],[80,720]]
-    loiter_seconds: 30
+  Ramp_Restricted:
+    type: restricted        # Wheelchair ramp at U10 entrance — checkered surface + railings
+                            # (frame 2378 — no unauthorised access)
+    polygon: [[680,390],[870,390],[870,560],[680,560]]
+    active_frames: [600, 4757]   # outdoor scene only
 
-  Building_Entrance:
-    type: storefront        # Main entrance near blue bin — track dwell time
-    polygon: [[460,195],[720,195],[720,305],[460,305]]
-    storefront_dwell_seconds: 10
+  Building_Entry:
+    type: storefront        # U10 entrance doorway — right side of frame 2378
+                            # tracks dwell/entry at main glass doors
+    polygon: [[940,270],[1230,270],[1230,590],[940,590]]
+    storefront_dwell_seconds: 8
+    active_frames: [600, 4757]   # outdoor scene only
+
+  Abandoned_Bag_Zone:
+    type: abandoned_bag     # Indoor corridor near lattice wall / fire extinguisher
+                            # Pink backpack detected alone here from frames 165–750
+                            # (t=5.5s–25s). Bag sits at floor level bottom-right of corridor.
+    polygon: [[580,480],[960,480],[960,720],[580,720]]
+    abandoned_bag_seconds: 20
+    active_frames: [0, 599]      # indoor corridor scene only
 
 # ─── Behaviour Thresholds ──────────────────────────────────────────────────────
 loiter_seconds: 30

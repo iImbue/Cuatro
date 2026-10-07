@@ -76,18 +76,29 @@ def _active_events(events: list[dict], t: float) -> list[dict]:
     ]
 
 
+def _zone_active(zone: dict, frame_num: int) -> bool:
+    """Return True if *frame_num* falls within the zone's active_frames range."""
+    af = zone.get("active_frames")
+    if af is None:
+        return True   # no range set → always active
+    return af[0] <= frame_num <= af[1]
+
+
 def _draw_zones(
     frame: np.ndarray,
     zones_cfg: dict,
     frame_wh: tuple[int, int],
+    frame_num: int = 0,
 ) -> np.ndarray:
     """
     Draw transparent zone polygons and labelled borders onto *frame*.
+    Zones with an active_frames range are only drawn when frame_num is inside it.
 
     Args:
         frame:     BGR image array (will be copied, not mutated)
         zones_cfg: config.yaml['zones'] dict
         frame_wh:  (width, height) of the actual frame
+        frame_num: current frame index (used for scene-aware filtering)
 
     Returns:
         Annotated copy of *frame*.
@@ -95,6 +106,10 @@ def _draw_zones(
     overlay = frame.copy()
 
     for zone_name, zone in zones_cfg.items():
+        # ── Scene-aware gate: skip zones not active in this frame ──────────
+        if not _zone_active(zone, frame_num):
+            continue
+
         ztype = zone.get("type", "loiter")
         color = _ZONE_COLORS.get(ztype, (128, 128, 128))
         pts_raw = zone.get("polygon", [])
@@ -317,7 +332,7 @@ def render_video(
         frame_wh = (frame_w, frame_h)
 
         # 1. Zone overlays
-        frame = _draw_zones(frame, zones_cfg, frame_wh)
+        frame = _draw_zones(frame, zones_cfg, frame_wh, frame_num)
 
         # 2. Detections for this frame
         records = frame_index.get(frame_num, [])
@@ -382,7 +397,7 @@ def render_single_frame(
     frame_wh = (frame.shape[1], frame.shape[0])
     zones_cfg = config.get("zones", {})
 
-    frame = _draw_zones(frame, zones_cfg, frame_wh)
+    frame = _draw_zones(frame, zones_cfg, frame_wh, frame_num)
 
     records = [r for r in tracks if r["frame"] == frame_num]
     frame = _draw_detections(frame, records)

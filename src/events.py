@@ -47,6 +47,29 @@ def _evidence_frame(t: float, fps: float) -> int:
     return int(t * fps)
 
 
+def _zone_active_at(zone: dict, t: float, fps: float) -> bool:
+    """Return True if timestamp *t* (seconds) falls within zone's active_frames range."""
+    af = zone.get("active_frames")
+    if af is None:
+        return True
+    start_s = af[0] / fps
+    end_s   = af[1] / fps
+    return start_s <= t <= end_s
+
+
+def _filter_visits(visits: list, zone: dict, fps: float) -> list:
+    """
+    Return only visits whose enter_t falls within the zone's active_frames window.
+    Visits outside the scene window are ghost detections from the wrong scene.
+    """
+    af = zone.get("active_frames")
+    if af is None:
+        return visits
+    start_s = af[0] / fps
+    end_s   = af[1] / fps
+    return [(enter, exit_) for enter, exit_ in visits if start_s <= enter <= end_s]
+
+
 def _make_event(
     entity_id: int,
     behaviour: str,
@@ -99,6 +122,7 @@ def _rule_loitering(
         thr = float(zone_info.get("loiter_seconds", threshold_s))
         zone_data = feat["zone_dwell"].get(zone_name, {})
         visits = zone_data.get("visits", [])
+        visits = _filter_visits(visits, zone_info, fps)  # scene-aware gate
 
         for enter_t, exit_t in visits:
             duration = exit_t - enter_t
@@ -143,6 +167,7 @@ def _rule_restricted_entry(
 
         zone_data = feat["zone_dwell"].get(zone_name, {})
         visits = zone_data.get("visits", [])
+        visits = _filter_visits(visits, zone_info, fps)  # scene-aware gate
 
         if not visits:
             continue
@@ -177,12 +202,14 @@ def _rule_abandoned_bag(
     all_features: list[dict],
     threshold_s: float,
     fps: float,
+    zones_cfg: dict,
 ) -> list[dict]:
     """
     Fire an abandoned_bag event when:
       - entity is a bag class
       - its last known owner has not been near it for >= threshold_s seconds
       - the bag itself is still present (last_t > owner_last_t + threshold_s)
+      - the bag's timestamps fall within an abandoned_bag zone's active_frames window
     """
     events: list[dict] = []
 
@@ -204,25 +231,41 @@ def _rule_abandoned_bag(
 
     if unattended_s >= threshold_s:
         abandon_start = owner_last_t
-        confidence = min(0.99, 0.65 + 0.015 * (unattended_s - threshold_s))
-        events.append(_make_event(
-            entity_id=eid,
-            behaviour="abandoned_bag",
-            start_s=abandon_start,
-            end_s=bag_last_t,
-            zone=None,
-            confidence=confidence,
-            why=(
-                f"Bag #{eid} ({feat['class']}) last seen with Person #{owner_id} "
-                f"at t={owner_last_t:.1f}s; unattended for {unattended_s:.1f}s "
-                f"(threshold {threshold_s:.0f}s)"
-            ),
-            fps=fps,
-            extra={
-                "owner_id":          owner_id,
-                "owner_last_seen_s": owner_last_t,
-            },
-        ))
+
+        # Scene-aware gate: check if abandon_start is inside any abandoned_bag zone's window
+        in_active_scene = False
+        zone_thr = threshold_s
+        for zone_name, zone_info in zones_cfg.items():
+            if zone_info.get("type") != "abandoned_bag":
+                continue
+            if _zone_active_at(zone_info, abandon_start, fps):
+                in_active_scene = True
+                zone_thr = float(zone_info.get("abandoned_bag_seconds", threshold_s))
+                break
+
+        if not in_active_scene:
+            return events
+
+        if unattended_s >= zone_thr:
+            confidence = min(0.99, 0.65 + 0.015 * (unattended_s - zone_thr))
+            events.append(_make_event(
+                entity_id=eid,
+                behaviour="abandoned_bag",
+                start_s=abandon_start,
+                end_s=bag_last_t,
+                zone=None,
+                confidence=confidence,
+                why=(
+                    f"Bag #{eid} ({feat['class']}) last seen with Person #{owner_id} "
+                    f"at t={owner_last_t:.1f}s; unattended for {unattended_s:.1f}s "
+                    f"(threshold {zone_thr:.0f}s)"
+                ),
+                fps=fps,
+                extra={
+                    "owner_id":          owner_id,
+                    "owner_last_seen_s": owner_last_t,
+                },
+            ))
 
     return events
 
@@ -251,6 +294,7 @@ def _rule_storefront_dwell(
         thr = float(zone_info.get("storefront_dwell_seconds", threshold_s))
         zone_data = feat["zone_dwell"].get(zone_name, {})
         visits = zone_data.get("visits", [])
+        visits = _filter_visits(visits, zone_info, fps)  # scene-aware gate
 
         for enter_t, exit_t in visits:
             duration = exit_t - enter_t
@@ -320,7 +364,7 @@ def run_events(
     for feat in features:
         all_events.extend(_rule_loitering(feat, zones_cfg, loiter_thr, fps))
         all_events.extend(_rule_restricted_entry(feat, zones_cfg, fps))
-        all_events.extend(_rule_abandoned_bag(feat, features, abandon_thr, fps))
+        all_events.extend(_rule_abandoned_bag(feat, features, abandon_thr, fps, zones_cfg))
         all_events.extend(_rule_storefront_dwell(feat, zones_cfg, storefront_thr, fps))
 
     # Sort by start time for clean output
