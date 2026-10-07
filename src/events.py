@@ -234,13 +234,15 @@ def _rule_abandoned_bag(
 
         # Scene-aware gate: check if abandon_start is inside any abandoned_bag zone's window
         in_active_scene = False
-        zone_thr = threshold_s
-        for zone_name, zone_info in zones_cfg.items():
+        zone_thr  = threshold_s
+        zone_name = None
+        for zn, zone_info in zones_cfg.items():
             if zone_info.get("type") != "abandoned_bag":
                 continue
             if _zone_active_at(zone_info, abandon_start, fps):
                 in_active_scene = True
-                zone_thr = float(zone_info.get("abandoned_bag_seconds", threshold_s))
+                zone_thr  = float(zone_info.get("abandoned_bag_seconds", threshold_s))
+                zone_name = zn
                 break
 
         if not in_active_scene:
@@ -253,7 +255,7 @@ def _rule_abandoned_bag(
                 behaviour="abandoned_bag",
                 start_s=abandon_start,
                 end_s=bag_last_t,
-                zone=None,
+                zone=zone_name,          # now set — banner + overlay will show it
                 confidence=confidence,
                 why=(
                     f"Bag #{eid} ({feat['class']}) last seen with Person #{owner_id} "

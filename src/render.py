@@ -52,9 +52,10 @@ _ZONE_ALPHA = 0.20
 
 # Zone border colours by type (BGR)
 _ZONE_COLORS: dict[str, tuple[int, int, int]] = {
-    "loiter":     (0, 200, 255),   # yellow
-    "restricted": (0, 0, 220),     # red
-    "storefront": (0, 200, 80),    # green
+    "loiter":        (0, 200, 255),   # yellow
+    "restricted":    (0, 0, 220),     # red
+    "storefront":    (0, 200, 80),    # green
+    "abandoned_bag": (0, 165, 255),   # orange  ← matches event_color in utils.py
 }
 
 
