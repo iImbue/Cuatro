@@ -4,7 +4,7 @@ tracker: bytetrack.yaml
 device: 0                  # 0 = first GPU (RTX 4050); "cpu" to force CPU
 conf_person: 0.40
 conf_bag: 0.30             # lower threshold so small bags aren't missed
-video_fps: 25              # fallback FPS when it can't be read from file
+video_fps: 24              # updated to match clip1.mp4 (24 fps)
 
 # ─── COCO class IDs we care about ──────────────────────────────────────────────
 target_classes:
@@ -15,20 +15,20 @@ target_classes:
 
 # ─── Zones ─────────────────────────────────────────────────────────────────────
 # Polygons are pixel coords for a 1280×720 reference frame.
-# P2 will update these once real footage is available.
+# Mapped to the actual amphitheater/patio footage.
 zones:
-  ATM_Area:
-    type: loiter            # loiter | restricted | storefront
-    polygon: [[200,300],[450,300],[450,550],[200,550]]
-    loiter_seconds: 30      # per-zone override of the global threshold
+  Staircase_Area:
+    type: restricted        # No loitering on stairs — fires immediately on entry
+    polygon: [[150,240],[430,240],[430,435],[150,435]]
 
-  Staff_Door:
-    type: restricted
-    polygon: [[900,100],[1050,100],[1050,280],[900,280]]
+  Patio_Seating:
+    type: loiter            # Umbrella/table area — flag if someone lingers too long
+    polygon: [[80,435],[1280,435],[1280,720],[80,720]]
+    loiter_seconds: 30
 
-  Store_A_Entrance:
-    type: storefront
-    polygon: [[500,400],[750,400],[750,600],[500,600]]
+  Building_Entrance:
+    type: storefront        # Main entrance near blue bin — track dwell time
+    polygon: [[460,195],[720,195],[720,305],[460,305]]
     storefront_dwell_seconds: 10
 
 # ─── Behaviour Thresholds ──────────────────────────────────────────────────────

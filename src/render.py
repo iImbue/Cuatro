@@ -173,9 +173,16 @@ def _draw_banner(
     if not active_evts:
         return frame
 
-    banner_total_h = _BANNER_H * len(active_evts)
-    # Dark background strip
-    cv2.rectangle(frame, (0, 0), (frame_w, banner_total_h), (20, 20, 20), -1)
+    LINE_H = 36
+    PADDING = 6
+    FONT = cv2.FONT_HERSHEY_SIMPLEX
+    FONT_SCALE = 0.55
+    THICKNESS = 2
+
+    banner_total_h = LINE_H * len(active_evts)
+
+    # Solid dark background for the whole banner
+    cv2.rectangle(frame, (0, 0), (frame_w, banner_total_h), (15, 15, 15), -1)
 
     for i, evt in enumerate(active_evts):
         behaviour = evt.get("behaviour", "unknown")
@@ -184,16 +191,23 @@ def _draw_banner(
         start = fmt_seconds(evt["start_s"])
         color = event_color(behaviour)
 
-        text = f"  ⚑ #{eid}  {behaviour.replace('_',' ').upper()}"
+        # Left coloured indicator bar
+        y_top = i * LINE_H
+        y_bot = y_top + LINE_H
+        cv2.rectangle(frame, (0, y_top), (5, y_bot), color, -1)
+
+        # Build text — ASCII only (OpenCV font limitation)
+        label = behaviour.replace("_", " ").upper()
+        text = f" #{eid}  {label}"
         if zone:
             text += f"  [{zone}]"
         text += f"  since {start}  (t={fmt_seconds(t)})"
 
-        y = i * _BANNER_H + 26
+        y_text = y_top + LINE_H - PADDING - 4
         cv2.putText(
             frame, text,
-            (4, y),
-            cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2, cv2.LINE_AA,
+            (10, y_text),
+            FONT, FONT_SCALE, color, THICKNESS, cv2.LINE_AA,
         )
 
     return frame
@@ -224,7 +238,7 @@ def _save_thumbnail(
     lines = [
         f"Entity #{eid}  |  {behaviour.replace('_', ' ').upper()}",
         f"Zone: {evt.get('zone') or 'N/A'}",
-        f"t = {fmt_seconds(evt['start_s'])} – {fmt_seconds(evt.get('end_s', evt['start_s']))}",
+        f"t = {fmt_seconds(evt['start_s'])} - {fmt_seconds(evt.get('end_s', evt['start_s']))}",
         evt.get("why", ""),
     ]
     for j, line in enumerate(lines):

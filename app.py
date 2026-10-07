@@ -107,17 +107,21 @@ def _default_path(name: str) -> Path:
     return Path("data") / name
 
 
-# Load tracks
+# Load tracks — prefer outputs/tracks.json, fall back to mock
 if tracks_file and not use_mock:
     tracks: list = _load_json_bytes(tracks_file.read())
+elif Path("outputs/tracks.json").exists() and not use_mock:
+    tracks = load_json(Path("outputs/tracks.json"))
 elif _default_path("mock_tracks.json").exists():
     tracks = load_json(_default_path("mock_tracks.json"))
 else:
     tracks = []
 
-# Load events
+# Load events — prefer outputs/events.json, fall back to mock
 if events_file and not use_mock:
     events: list = _load_json_bytes(events_file.read())
+elif Path("outputs/events.json").exists() and not use_mock:
+    events = load_json(Path("outputs/events.json"))
 elif _default_path("mock_events.json").exists():
     events = load_json(_default_path("mock_events.json"))
 else:
