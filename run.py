@@ -59,22 +59,21 @@ def main() -> None:
     if args.tracks_json:
         print(f"[run] Stage A – skipped, using tracks from {tracks_path}")
     else:
-        print("[run] Stage A – detect + track  (P1 stub)")
-        # Uncomment once P1 delivers tracker.py:
-        # from src.tracker import run_tracker
-        # run_tracker(str(video_path), cfg, str(tracks_path))
+        print("[run] Stage A – detect + track")
+        from src.tracker import run_tracker  # noqa: PLC0415
+        run_tracker(str(video_path), cfg, str(tracks_path))
 
     # ── Stage B: Feature Engine  (P2 owns src/features.py) ────────────────────
     features_path = out_dir / "features.json"
-    print("[run] Stage B – feature engine  (P2 stub)")
-    # from src.features import run_features
-    # run_features(str(tracks_path), cfg, str(features_path))
+    print("[run] Stage B – feature engine")
+    from src.features import run_features  # noqa: PLC0415
+    run_features(str(tracks_path), cfg, str(features_path))
 
     # ── Stage C: Behaviour / Event Engine  (P2 owns src/events.py) ───────────
     events_path = out_dir / "events.json"
-    print("[run] Stage C – behaviour engine  (P2 stub)")
-    # from src.events import run_events
-    # run_events(str(features_path), cfg, str(events_path))
+    print("[run] Stage C – behaviour engine")
+    from src.events import run_events  # noqa: PLC0415
+    run_events(str(features_path), cfg, str(events_path))
 
     # ── Stage D: Render  (P3 owns src/render.py) ──────────────────────────────
     if not args.no_render:

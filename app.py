@@ -246,7 +246,7 @@ with col_thumb:
     thumb_path = Path(cfg.get("thumbnail_dir", "outputs/thumbnails")) / thumb_name
 
     if thumb_path.exists():
-        st.image(str(thumb_path), caption=f"Evidence thumbnail – {thumb_name}", use_container_width=True)
+        st.image(str(thumb_path), caption=f"Evidence thumbnail – {thumb_name}", use_column_width=True)
     else:
         # Fall back to generating a preview from the uploaded video
         if video_file:
@@ -266,7 +266,7 @@ with col_thumb:
                     raw_frame, eframe, fps_v, tracks, events, cfg
                 )
                 rgb = cv2.cvtColor(annotated, cv2.COLOR_BGR2RGB)
-                st.image(rgb, caption=f"Frame {eframe} (live preview)", use_container_width=True)
+                st.image(rgb, caption=f"Frame {eframe} (live preview)", use_column_width=True)
             else:
                 st.info(f"Thumbnail not found at {thumb_path}. Run the pipeline first.")
         else:
@@ -329,7 +329,7 @@ if events:
     ax.invert_yaxis()  # first event at the top
     plt.tight_layout(pad=0.5)
 
-    st.pyplot(fig, use_container_width=True, transparent=True)
+    st.pyplot(fig, use_container_width=False, transparent=True)
     plt.close(fig)
     st.caption("Bar width = event duration in seconds.")
 

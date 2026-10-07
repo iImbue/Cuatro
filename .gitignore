@@ -1,3 +1,34 @@
+# Python
 venv/
 __pycache__/
+*.pyc
+*.pyo
 .DS_Store
+
+# Model weights (large binaries — download separately)
+*.pt
+*.pth
+*.onnx
+
+# Video files (too large for git)
+*.mp4
+*.avi
+*.mov
+*.mkv
+
+# Generated outputs (reproducible, not source)
+outputs/
+!outputs/.gitkeep
+
+# Debug / temp images
+outputs/debug_*.jpg
+outputs/tmp_*.mp4
+
+# Chat session exports
+ps07-session.json
+*.session.json
+
+# Data clips (large — keep mock JSON, not video)
+data/*.mp4
+data/*.avi
+data/*.mov
